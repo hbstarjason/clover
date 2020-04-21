@@ -1,0 +1,403 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: redis
+    redis-sentinel: "true"
+    role: master
+  name: redis
+spec:
+  containers:
+    - name: redis
+      image: k8s.gcr.io/redis:v1
+      env:
+        - name: MASTER
+          value: "true"
+      ports:
+        - containerPort: 6379
+      resources:
+        limits:
+          cpu: "0.1"
+      volumeMounts:
+        - mountPath: /redis-master-data
+          name: data
+    - name: sentinel
+      image: kubernetes/redis:v1
+      env:
+        - name: SENTINEL
+          value: "true"
+      ports:
+        - containerPort: 26379
+  volumes:
+    - name: data
+      emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  ports:
+  - port: 6379
+  selector:
+    name: redis
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clover-server1
+  labels:
+    app: clover-server1
+spec:
+  template:
+    metadata:
+      labels:
+        app: clover-server1
+    spec:
+      containers:
+        - name: clover-server1
+          image: opnfv/clover-ns-nginx-server:latest
+          ports:
+           - containerPort: 50054
+           - containerPort: 9180
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clover-server1
+  labels:
+    app: clover-server1
+spec:
+  ports:
+  - port: 50054
+    name: grpc
+  - port: 9180
+    name: http
+  selector:
+    app: clover-server1
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clover-server2
+  labels:
+    app: clover-server2
+spec:
+  template:
+    metadata:
+      labels:
+        app: clover-server2
+    spec:
+      containers:
+        - name: clover-server2
+          image: opnfv/clover-ns-nginx-server:latest
+          ports:
+           - containerPort: 50054
+           - containerPort: 9180
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clover-server2
+  labels:
+    app: clover-server2
+spec:
+  ports:
+  - port: 50054
+    name: grpc
+  - port: 9180
+    name: http
+  selector:
+    app: clover-server2
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clover-server3
+  labels:
+    app: clover-server3
+spec:
+  template:
+    metadata:
+      labels:
+        app: clover-server3
+    spec:
+      containers:
+        - name: clover-server3
+          image: opnfv/clover-ns-nginx-server:latest
+          ports:
+           - containerPort: 50054
+           - containerPort: 9180
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clover-server3
+  labels:
+    app: clover-server3
+spec:
+  ports:
+  - port: 50054
+    name: grpc
+  - port: 9180
+    name: http
+  selector:
+    app: clover-server3
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clover-server4
+  labels:
+    app: clover-server4
+spec:
+  template:
+    metadata:
+      labels:
+        app: clover-server4
+    spec:
+      containers:
+        - name: clover-server4
+          image: opnfv/clover-ns-nginx-server:latest
+          ports:
+           - containerPort: 50054
+           - containerPort: 9180
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clover-server4
+  labels:
+    app: clover-server4
+spec:
+  ports:
+  - port: 50054
+    name: grpc
+  - port: 9180
+    name: http
+  selector:
+    app: clover-server4
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clover-server5
+  labels:
+    app: clover-server5
+spec:
+  template:
+    metadata:
+      labels:
+        app: clover-server5
+    spec:
+      containers:
+        - name: clover-server5
+          image: opnfv/clover-ns-nginx-server:latest
+          ports:
+           - containerPort: 50054
+           - containerPort: 9180
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clover-server5
+  labels:
+    app: clover-server5
+spec:
+  ports:
+  - port: 50054
+    name: grpc
+  - port: 9180
+    name: http
+  selector:
+    app: clover-server5
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: http-lb-v1
+  labels:
+    app: http-lb
+    version: v1
+spec:
+  template:
+    metadata:
+      labels:
+        app: http-lb
+        version: v1
+        name: http-lb-v1
+    spec:
+      containers:
+        - name: http-lb
+          image: opnfv/clover-ns-nginx-lb:latest
+          ports:
+           - containerPort: 50054
+           - containerPort: 9180
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: http-lb-v2
+  labels:
+    app: http-lb
+    version: v2
+spec:
+  template:
+    metadata:
+      labels:
+        app: http-lb
+        version: v2
+        name: http-lb-v2
+    spec:
+      containers:
+        - name: http-lb
+          image: opnfv/clover-ns-nginx-lb:latest
+          ports:
+           - containerPort: 50054
+           - containerPort: 9180
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-lb
+  labels:
+    app: http-lb
+spec:
+  ports:
+  - port: 9180
+    name: http
+  selector:
+    app: http-lb
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-lb-v1
+spec:
+  ports:
+  - port: 50054
+    name: grpc
+  selector:
+    name: http-lb-v1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-lb-v2
+spec:
+  ports:
+  - port: 50054
+    name: grpc
+  selector:
+    name: http-lb-v2
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: snort-ids
+  labels:
+    app: snort-ids
+spec:
+  template:
+    metadata:
+      labels:
+        app: snort-ids
+    spec:
+      containers:
+        - name: snort-ids
+          image: opnfv/clover-ns-snort-ids:latest
+          ports:
+           - containerPort: 50052
+           - containerPort: 50054
+           - containerPort: 6379
+           - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: snort-ids
+  labels:
+    app: snort-ids
+spec:
+  ports:
+  - port: 50052
+    name: grpc
+  - port: 50054
+    name: proxy-access-control
+  - port: 6379
+    name: redis
+  - port: 80
+    name: http
+  selector:
+    app: snort-ids
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: proxy-access-control
+  labels:
+    app: proxy-access-control
+spec:
+  template:
+    metadata:
+      labels:
+        app: proxy-access-control
+    spec:
+      containers:
+        - name: proxy-access-control
+          image: opnfv/clover-ns-nginx-proxy:latest
+          ports:
+           - containerPort: 50054
+           - containerPort: 9180
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proxy-access-control
+  labels:
+    app: proxy-access-control
+spec:
+  ports:
+  - port: 50054
+    name: grpc
+  - port: 9180
+    name: http
+  selector:
+    app: proxy-access-control
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: sdc-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: sdcsample
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - sdc-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: proxy-access-control
+        port:
+          number: 9180
+    mirror:
+      host: snort-ids
